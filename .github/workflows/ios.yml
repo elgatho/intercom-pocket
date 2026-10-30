@@ -6,7 +6,7 @@ on:
     paths: ['ios/**', '.github/workflows/ios.yml']
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - name: Core tests
