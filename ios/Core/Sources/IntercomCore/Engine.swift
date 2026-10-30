@@ -35,14 +35,15 @@ public protocol EngineDelegate: AnyObject {
 
 /// Call state machine (port of Engine.java): signalling over HTTP, audio over WebSocket.
 public final class Engine: IntercomServerListener {
-    public let selfId: String, selfName: String, version: String
+    public let selfId: String, version: String
+    public private(set) var selfName: String
     public var enabled = true, dnd = false
     public weak var delegate: EngineDelegate?
     public var audio: AudioSink?
     public private(set) var state: CallState = .idle
     public private(set) var peer: Peer?
-    private let wire: Wire
-    private let sharedKey: String
+    private var wire: Wire
+    private var sharedKey: String
     private var callId: String?
     private var link: Link?
     private var timer: Timer?
@@ -53,6 +54,12 @@ public final class Engine: IntercomServerListener {
 
     public init(id: String, name: String, key: String, version: String = "2.0.1") {
         selfId = id; selfName = name; sharedKey = key; self.version = version; wire = Wire(key: key)
+    }
+
+    /// Apply settings changes (name / shared key) at runtime.
+    public func configure(name: String, key: String) {
+        lock.lock(); defer { lock.unlock() }
+        selfName = name; sharedKey = key; wire = Wire(key: key)
     }
 
     // MARK: server side

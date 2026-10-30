@@ -1,2 +1,4 @@
 "peers" = "Gegenstellen"; "add_peer" = "Gegenstelle hinzufügen"; "host" = "Host"; "add" = "Hinzufügen";
 "call" = "Anrufen"; "announce" = "Durchsage"; "hangup" = "Auflegen";
+"discovered" = "Im Netzwerk gefunden"; "settings" = "Einstellungen"; "device" = "Dieses Gerät"; "name" = "Name";
+"shared_key" = "Gemeinsamer Schlüssel"; "shared_key_hint" = "Muss auf allen Geräten mit dem Schlüssel in Kiosk Satellite übereinstimmen."; "save" = "Speichern";

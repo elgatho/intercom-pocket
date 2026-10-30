@@ -1,2 +1,4 @@
 "peers" = "Peers"; "add_peer" = "Add peer"; "host" = "Host"; "add" = "Add";
 "call" = "Call"; "announce" = "Announce"; "hangup" = "Hang up";
+"discovered" = "Found on network"; "settings" = "Settings"; "device" = "This device"; "name" = "Name";
+"shared_key" = "Shared key"; "shared_key_hint" = "Must match the key configured in Kiosk Satellite on every device."; "save" = "Save";
