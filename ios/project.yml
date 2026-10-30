@@ -1,0 +1,12 @@
+name: IntercomPocket
+options: { bundleIdPrefix: de.local }
+packages:
+  IntercomCore: { path: Core }
+targets:
+  IntercomPocket:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources: [App]
+    dependencies: [{ package: IntercomCore }]
+    settings: { INFOPLIST_FILE: App/Info.plist, PRODUCT_BUNDLE_IDENTIFIER: de.local.intercompocket }

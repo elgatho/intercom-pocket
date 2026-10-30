@@ -1,0 +1,22 @@
+name: iOS
+on:
+  push:
+    paths: ['ios/**', '.github/workflows/ios.yml']
+  pull_request:
+    paths: ['ios/**', '.github/workflows/ios.yml']
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Core tests
+        working-directory: ios/Core
+        run: swift test
+      - name: Generate project
+        working-directory: ios
+        run: brew install xcodegen && xcodegen
+      - name: Build app (simulator)
+        working-directory: ios
+        run: |
+          xcodebuild -project IntercomPocket.xcodeproj -scheme IntercomPocket \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
