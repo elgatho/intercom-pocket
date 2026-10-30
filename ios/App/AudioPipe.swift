@@ -11,8 +11,9 @@ final class AudioPipe: AudioSink {
 
     func start(speaker: Bool, onCapture: @escaping (Data) -> Void) {
         let s = AVAudioSession.sharedInstance()
-        try? s.setCategory(.playAndRecord, mode: .voiceChat,
-                           options: [.allowBluetooth, .allowBluetoothA2DP] + (speaker ? [.defaultToSpeaker] : []))
+        var opts: AVAudioSession.CategoryOptions = [.allowBluetooth, .allowBluetoothA2DP]
+        if speaker { opts.insert(.defaultToSpeaker) }
+        try? s.setCategory(.playAndRecord, mode: .voiceChat, options: opts)
         try? s.setActive(true)
         try? engine.inputNode.setVoiceProcessingEnabled(true)
         engine.attach(player)
