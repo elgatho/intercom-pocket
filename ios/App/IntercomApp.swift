@@ -18,6 +18,9 @@ final class Model: ObservableObject, EngineDelegate {
     @Published var found: [Peer] = []
     @Published var name: String
     @Published var key: String
+    @Published var relayURL: String
+    @Published var relaySecret: String
+    var voipToken: String?
 
     init() {
         let d = UserDefaults.standard
@@ -26,10 +29,13 @@ final class Model: ObservableObject, EngineDelegate {
         engine = Engine(id: id, name: d.string(forKey: "name") ?? UIDevice.current.name, key: Keychain.get("key") ?? "")
         name = d.string(forKey: "name") ?? UIDevice.current.name
         key = Keychain.get("key") ?? ""
+        relayURL = d.string(forKey: "relayURL") ?? ""
+        relaySecret = Keychain.get("relaySecret") ?? ""
         engine.audio = AudioPipe(); engine.delegate = self
         if let data = d.data(forKey: "peers"), let p = try? JSONDecoder().decode([Peer].self, from: data) { peers = p }
         calls = CallController(engine: engine)
         if let s = try? IntercomServer(port: 2324, delegate: engine) { s.start(); servers.append(s) }
+        calls.onToken = { [weak self] t in self?.voipToken = t; self?.registerPush() }
         discovery.onPeers = { [weak self] p in DispatchQueue.main.async { self?.found = p } }
         discovery.start(id: id, name: name, version: engine.version, port: 2324)
     }
@@ -38,9 +44,23 @@ final class Model: ObservableObject, EngineDelegate {
         self.state = state; current = peer
         if state == .idle { calls.ended() }
     }
-    func engineIncoming(callId: String, from: Peer, broadcast: Bool) { if !broadcast { calls.reportIncoming(from: from) } }
+    func engineIncoming(callId: String, from: Peer, broadcast: Bool) {
+        guard !broadcast else { return }
+        if calls.isReported { calls.lanCallArrived() } else { calls.reportIncoming(from: from) }
+    }
+
+    func registerPush() {
+        guard let t = voipToken, let url = URL(string: relayURL + "/register"), !relayURL.isEmpty else { return }
+        var r = URLRequest(url: url, timeoutInterval: 8)
+        r.httpMethod = "POST"; r.setValue("Bearer " + relaySecret, forHTTPHeaderField: "Authorization")
+        r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        r.httpBody = try? JSONSerialization.data(withJSONObject: ["id": engine.selfId, "token": t, "name": name])
+        URLSession.shared.dataTask(with: r).resume()
+    }
 
     func save() {
+        UserDefaults.standard.set(relayURL, forKey: "relayURL"); Keychain.set("relaySecret", relaySecret)
+        registerPush()
         UserDefaults.standard.set(name, forKey: "name"); Keychain.set("key", key)
         engine.configure(name: name, key: key)
         discovery.start(id: engine.selfId, name: name, version: engine.version, port: 2324)
@@ -92,6 +112,10 @@ struct SettingsView: View {
                 Section("device") {
                     TextField("name", text: $m.name)
                     Text("id: \(m.engine.selfId)").font(.footnote).foregroundStyle(.secondary)
+                }
+                Section(header: Text("push_relay"), footer: Text("push_relay_hint")) {
+                    TextField("relay_url", text: $m.relayURL).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+                    SecureField("relay_secret", text: $m.relaySecret)
                 }
                 Section(header: Text("shared_key"), footer: Text("shared_key_hint")) {
                     SecureField("shared_key", text: $m.key).textInputAutocapitalization(.never).autocorrectionDisabled()

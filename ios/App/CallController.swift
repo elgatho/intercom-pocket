@@ -12,6 +12,8 @@ final class CallController: NSObject, CXProviderDelegate, PKPushRegistryDelegate
     }())
     private let ctl = CXCallController()
     private var uuid: UUID?
+    private var answerWhenRinging = false
+    var isReported: Bool { uuid != nil }
     private let engine: Engine
     private let push = PKPushRegistry(queue: .main)
     var onToken: ((String) -> Void)?
@@ -29,10 +31,13 @@ final class CallController: NSObject, CXProviderDelegate, PKPushRegistryDelegate
         provider.reportNewIncomingCall(with: u, update: upd) { completion?($0) }
     }
 
-    func ended() { if let u = uuid { provider.reportCall(with: u, endedAt: nil, reason: .remoteEnded); uuid = nil } }
+    /// Called when the LAN request for a pushed call finally arrives.
+    func lanCallArrived() { if answerWhenRinging { answerWhenRinging = false; engine.answer() } }
+
+    func ended() { answerWhenRinging = false; if let u = uuid { provider.reportCall(with: u, endedAt: nil, reason: .remoteEnded); uuid = nil } }
 
     func providerDidReset(_ p: CXProvider) { engine.hangup() }
-    func provider(_ p: CXProvider, perform a: CXAnswerCallAction) { engine.answer(); a.fulfill() }
+    func provider(_ p: CXProvider, perform a: CXAnswerCallAction) { if engine.state == .ringing { engine.answer() } else { answerWhenRinging = true }; a.fulfill() }
     func provider(_ p: CXProvider, perform a: CXEndCallAction) { engine.state == .ringing ? engine.decline() : engine.hangup(); a.fulfill() }
     func provider(_ p: CXProvider, didActivate s: AVAudioSession) {}
 

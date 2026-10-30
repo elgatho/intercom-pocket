@@ -2,3 +2,4 @@
 "call" = "Anrufen"; "announce" = "Durchsage"; "hangup" = "Auflegen";
 "discovered" = "Im Netzwerk gefunden"; "settings" = "Einstellungen"; "device" = "Dieses Gerät"; "name" = "Name";
 "shared_key" = "Gemeinsamer Schlüssel"; "shared_key_hint" = "Muss auf allen Geräten mit dem Schlüssel in Kiosk Satellite übereinstimmen."; "save" = "Speichern";
+"push_relay" = "Push-Relay"; "push_relay_hint" = "Optional. Weckt die App bei Anrufen im Hintergrund."; "relay_url" = "Relay-URL (http://host:8787)"; "relay_secret" = "Relay-Geheimnis";
